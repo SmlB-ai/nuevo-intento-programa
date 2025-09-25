@@ -1,0 +1,461 @@
+/* Estilos generales */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: #ffffff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #dddfe2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #4B4F56;
+}
+
+.content-wrapper {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: #f7f7f7; /* Un color ligeramente distinto para la barra lateral */
+    border-right: 1px solid #dddfe2;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nueva Navegación Principal */
+.main-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.nav-item {
+    padding: 12px 15px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-item:hover {
+    background-color: #e9e9e9;
+}
+
+.nav-item.active {
+    background-color: #1877f2;
+    color: #ffffff;
+}
+
+/* Re-organización para la vista de participantes */
+#view-participantes {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+}
+
+.role-selector-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    width: 300px;
+    overflow-y: auto;
+}
+
+.role-selector-container h2 {
+    margin-top: 0;
+    font-size: 1.2em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.role-management-container {
+    flex-grow: 1;
+}
+
+#roles-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.role-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.role-item:hover {
+    background-color: #f0f2f5;
+}
+
+.role-item.active {
+    background-color: #1877f2;
+    color: #ffffff;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background-color: #f0f2f5;
+}
+
+#welcome-message {
+    text-align: center;
+    color: #606770;
+}
+
+.hidden {
+    display: none;
+}
+
+#role-management-section h2 {
+    color: #1c1e21;
+    border-bottom: 1px solid #ccd0d5;
+    padding-bottom: 15px;
+}
+
+.add-participant-form, .participant-list {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+h3 {
+    margin-top: 0;
+    font-size: 1.1em;
+    color: #4B4F56;
+}
+
+textarea, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccd0d5;
+    box-sizing: border-box; /* Importante para que el padding no afecte el width */
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+button {
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #166fe5;
+}
+
+.special-options {
+    margin-top: 15px;
+}
+
+#participant-list-ul {
+    list-style: none;
+    padding: 0;
+}
+
+#participant-list-ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+#participant-list-ul li:last-child {
+    border-bottom: none;
+}
+
+.delete-btn {
+    background-color: #fa3e3e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    width: auto; /* Ancho automático para el botón */
+}
+
+.delete-btn:hover {
+    background-color: #e03030;
+}
+
+/* Estilos para el Generador de Programa */
+.card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.month-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#month-input {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccd0d5;
+}
+
+#weekly-config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.week-config h4 {
+    margin-top: 0;
+    color: #1877f2;
+    border-bottom: 1px solid #e9e9e9;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.checkbox-group input {
+    width: auto;
+}
+
+.smm-config-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+    border-left: 3px solid #e9e9e9;
+    padding-left: 15px;
+}
+
+.smm-part-config {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.smm-part-config label {
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+.smm-part-config select {
+    width: auto;
+    flex-grow: 1;
+}
+
+#generate-schedule-btn {
+    margin-top: 20px;
+    padding: 12px 20px;
+    font-size: 1.1em;
+}
+
+/* Estilos para la Salida del Programa Generado */
+.schedule-week {
+    margin-top: 20px;
+}
+
+.schedule-week h3 {
+    color: #1877f2;
+    border-bottom: 1px solid #e9e9e9;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.assignments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.assignment-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.assignment-title {
+    font-weight: bold;
+    width: 250px; /* Ancho fijo para alinear los nombres */
+    flex-shrink: 0;
+}
+
+.assignment-names {
+    flex-grow: 1;
+}
+
+.copy-btn {
+    background: #e9e9e9;
+    color: #333;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 5px 10px;
+    border-radius: 4px;
+    width: auto;
+}
+
+.copy-btn:hover {
+    background: #dcdcdc;
+}
+
+/* Estilos para el Modal */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+}
+
+#modal-candidates-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#modal-candidates-list li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#modal-candidates-list li:hover {
+    background-color: #f0f2f5;
+}
+
+.assignee {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    color: #1877f2;
+}
+
+.assignee:hover {
+    text-decoration: underline solid;
+}
+
+/* Estilos para la Tabla de Historial */
+.history-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+#history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#history-table th, #history-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+#history-table thead {
+    background-color: #f7f7f7;
+}
+
+#history-table th {
+    font-weight: 600;
+}
+
+#history-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#history-table tbody tr:hover {
+    background-color: #f0f2f5;
+}

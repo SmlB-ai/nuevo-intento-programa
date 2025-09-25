@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignador de Programas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Asignador de Programas de Reunión</h1>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- La barra lateral de roles se mantiene igual -->
+            <aside class="sidebar">
+                <nav class="main-nav">
+                    <a href="#" id="nav-participantes" class="nav-item active">Gestión de Participantes</a>
+                    <a href="#" id="nav-generador" class="nav-item">Generador de Programa</a>
+                    <a href="#" id="nav-historial" class="nav-item">Historial</a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <!-- Vista de Gestión de Participantes -->
+                <div id="view-participantes">
+                    <div class="role-selector-container">
+                        <h2>Roles</h2>
+                        <ul id="roles-list"></ul>
+                    </div>
+                    <div class="role-management-container">
+                        <div id="welcome-message">
+                            <h2>Bienvenido</h2>
+                            <p>Selecciona un rol de la lista para empezar a gestionar los participantes.</p>
+                        </div>
+                        <div id="role-management-section" class="hidden">
+                            <h2 id="current-role-title"></h2>
+                            <div class="add-participant-form">
+                                <h3>Añadir Participante(s)</h3>
+                                <form id="add-person-form">
+                                    <input type="hidden" id="current-role-id" name="role_id">
+                                    <textarea name="nombres" placeholder="Escribe un nombre por línea..." rows="4" required></textarea>
+                                    <div id="smm-options" class="hidden special-options"><label>Género:</label><select name="genero"><option value="hombre">Hombre</option><option value="mujer">Mujer</option></select></div>
+                                    <div id="acomodadores-options" class="hidden special-options"><label>Grupo de edad:</label><select name="grupo_edad"><option value="adulto">Adulto</option><option value="joven">Joven</option></select></div>
+                                    <button type="submit">Añadir</button>
+                                </form>
+                            </div>
+                            <div class="participant-list">
+                                <h3>Lista de Participantes</h3>
+                                <ul id="participant-list-ul"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista de Generación de Programa -->
+                <div id="view-generador" class="hidden">
+                    <h2>Generar Programa Mensual</h2>
+                    <div class="generator-form card">
+                        <div class="month-selector">
+                            <label for="month-input">Selecciona el Mes:</label>
+                            <input type="month" id="month-input" name="month">
+                        </div>
+                        <div id="weekly-config-container">
+                            <!-- La configuración de cada semana se generará aquí -->
+                        </div>
+                        <button id="generate-schedule-btn" class="hidden">Generar Programa</button>
+                    </div>
+                    <div id="schedule-output" class="hidden">
+                        <!-- El programa generado se mostrará aquí -->
+                    </div>
+                </div>
+
+                <!-- Vista de Historial -->
+                <div id="view-historial" class="hidden">
+                    <h2>Historial de Asignaciones</h2>
+                    <div class="card">
+                        <div class="history-table-container">
+                            <table id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha (Año-Mes-Semana)</th>
+                                        <th>Asignación</th>
+                                        <th>Participante</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <!-- Los datos del historial se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para cambio manual de asignación -->
+    <div id="manual-override-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>Cambiar Asignación</h3>
+            <p>Selecciona un nuevo participante para <strong id="modal-assignment-title"></strong>:</p>
+            <ul id="modal-candidates-list">
+                <!-- Candidatos se cargarán aquí -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
