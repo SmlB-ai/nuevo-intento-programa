@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Scheduler:
     def __init__(self, config, participants_data, history_data):
