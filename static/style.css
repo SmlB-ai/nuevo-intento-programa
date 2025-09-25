@@ -76,6 +76,10 @@ header h1 {
     height: 100%;
 }
 
+#view-participantes.hidden {
+    display: none;
+}
+
 .role-selector-container {
     background: #fff;
     padding: 20px;
