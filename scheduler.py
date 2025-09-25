@@ -8,11 +8,18 @@ class Scheduler:
         self.month = int(config['month'])
         self.weeks_config = config['weeks']
         self.participants_by_role = self._prepare_participants(participants_data)
-        self.history = self._prepare_history(history_data)
+
+        # Historial mejorado
+        self.history_by_role, self.history_any_role = self._prepare_history(history_data)
+
+        # Rastreadores para el mes actual
+        self.special_roles_assigned_this_month = set()
+        self.SPECIAL_ROLES = {'Lectura de la biblia', 'Seamos mejores maestros', 'Acomodadores'}
+
         self.schedule = {i: {} for i in range(len(self.weeks_config))}
-        self.smm_assigned_this_month = set()
 
     def _prepare_participants(self, participants_raw):
+        # ... (sin cambios)
         participants = defaultdict(list)
         for p in participants_raw:
             participants[p['nombre_rol']].append(p)
@@ -23,15 +30,26 @@ class Scheduler:
         return participants
 
     def _prepare_history(self, history_raw):
-        history = defaultdict(lambda: defaultdict(lambda: '1970-01-01'))
+        history_by_role = defaultdict(lambda: defaultdict(lambda: '1970-01-01'))
+        history_any_role = defaultdict(lambda: '1970-01-01')
+
         for record in history_raw:
-            key = self.get_history_key(record['asignacion_nombre'], record.get('rol_secundario'))
+            person_id = record['persona_id']
             date_str = f"{record['anio']}-{record['mes']:02d}-{record['semana']:02d}"
-            if date_str > history[record['persona_id']][key]:
-                history[record['persona_id']][key] = date_str
-        return history
+
+            # Guardar la fecha más reciente para un rol específico
+            role_key = self.get_history_key(record['asignacion_nombre'], record.get('rol_secundario'))
+            if date_str > history_by_role[person_id][role_key]:
+                history_by_role[person_id][role_key] = date_str
+
+            # Guardar la fecha más reciente para CUALQUIER rol
+            if date_str > history_any_role[person_id]:
+                history_any_role[person_id] = date_str
+
+        return history_by_role, history_any_role
 
     def get_history_key(self, role_name, sub_role=None):
+        # ... (sin cambios)
         return f"{role_name}{f'_{sub_role}' if sub_role else ''}"
 
     def find_candidate(self, role_key, role_name_for_history, assigned_this_week, sub_role_key=None, custom_exclusions=None):
@@ -47,8 +65,14 @@ class Scheduler:
         eligible = []
         for p in candidates:
             if p['persona_id'] not in exclusions:
-                last_assigned = self.history[p['persona_id']][history_key]
-                score = (datetime.strptime(last_assigned, '%Y-%m-%d'), random.random())
+                # Puntuación mejorada: (1. última vez CUALQUIER asignación, 2. última vez ESTA asignación, 3. aleatorio)
+                last_any = self.history_any_role[p['persona_id']]
+                last_this_role = self.history_by_role[p['persona_id']][history_key]
+                score = (
+                    datetime.strptime(last_any, '%Y-%m-%d'),
+                    datetime.strptime(last_this_role, '%Y-%m-%d'),
+                    random.random()
+                )
                 eligible.append((score, p))
 
         if not eligible:
@@ -61,40 +85,57 @@ class Scheduler:
         assigned_this_week = set()
         week_schedule = defaultdict(list)
 
-        def assign_and_get_person(role_key, role_name, sub_role=None, custom_exclusions=None):
-            candidate = self.find_candidate(role_key, role_name, assigned_this_week, sub_role, custom_exclusions)
+        # Fecha de esta semana para actualizar el historial `history_any_role`
+        current_date_str = f"{self.year}-{self.month:02d}-{week_index+1:02d}"
+
+        def assign_and_get_person(role_key, role_name, sub_role=None, is_special_role=False):
+            # Añadir exclusiones de roles especiales si aplica
+            exclusions = self.special_roles_assigned_this_month if is_special_role else None
+
+            candidate = self.find_candidate(role_key, role_name, assigned_this_week, sub_role, custom_exclusions=exclusions)
+
             if candidate and candidate.get('persona_id'):
-                assigned_this_week.add(candidate['persona_id'])
+                person_id = candidate['persona_id']
+                assigned_this_week.add(person_id)
+
+                # Actualizar historiales locales para este mes
                 history_key = self.get_history_key(role_name, sub_role)
-                self.history[candidate['persona_id']][history_key] = f"{self.year}-{self.month:02d}-{week_index+1:02d}"
+                self.history_by_role[person_id][history_key] = current_date_str
+                self.history_any_role[person_id] = current_date_str
+
+                if is_special_role:
+                    self.special_roles_assigned_this_month.add(person_id)
+
             return candidate
 
-        # Define all assignments with unique keys
+        # Lógica de asignación (simplificada)
         assignments_to_make = {
-            "Presidente": [("Presidente", "Presidente", None)],
-            "Oracion_Inicial": [("Oraciones", "Oracion", "inicial")],
-            "Tesoros": [("Tesoros", "Tesoros", None)],
-            "Perlas": [("Perlas", "Perlas", None)],
-            "Lectura_Biblia": [("Lectura de la biblia", "Lectura de la biblia", "sala_a"), ("Lectura de la biblia", "Lectura de la biblia", "sala_b")],
-            "Vida_Ministerio_1": [("Vida y ministerio", "Vida y ministerio", "vm1")],
-            "Estudio_Libro": [("Estudio del libro", "Estudio del libro", None)],
-            "Lector_Libro": [("Lector del libro", "Lector del libro", None)],
-            "Oracion_Final": [("Oraciones", "Oracion", "final")],
-            "Acomodadores_Entrada": [("acomodadores_adulto", "Acomodadores", "entrada")] * 3,
-            "Acomodadores_Auditorio": [("Acomodadores", "Acomodadores", "auditorio")] * 2,
+            # ... (Definiciones de asignaciones no especiales)
+            "Presidente": [("Presidente", "Presidente", None, False)],
+            "Oracion_Inicial": [("Oraciones", "Oracion", "inicial", False)],
+            "Tesoros": [("Tesoros", "Tesoros", None, False)],
+            "Perlas": [("Perlas", "Perlas", None, False)],
+            "Vida_Ministerio_1": [("Vida y ministerio", "Vida y ministerio", "vm1", False)],
+            "Estudio_Libro": [("Estudio del libro", "Estudio del libro", None, False)],
+            "Lector_Libro": [("Lector del libro", "Lector del libro", None, False)],
+            "Oracion_Final": [("Oraciones", "Oracion", "final", False)],
+            # Asignaciones especiales
+            "Lectura_Biblia": [("Lectura de la biblia", "Lectura de la biblia", "sala_a", True), ("Lectura de la biblia", "Lectura de la biblia", "sala_b", True)],
+            "Acomodadores_Entrada": [("acomodadores_adulto", "Acomodadores", "entrada", True)] * 3,
+            "Acomodadores_Auditorio": [("Acomodadores", "Acomodadores", "auditorio", True)] * 2,
         }
         if week_config.get('vym2_presente'):
-            assignments_to_make["Vida_Ministerio_2"] = [("Vida y ministerio", "Vida y ministerio", "vm2")]
+            assignments_to_make["Vida_Ministerio_2"] = [("Vida y ministerio", "Vida y ministerio", "vm2", False)]
         if week_config.get('vym3_presente'):
-            assignments_to_make["Vida_Ministerio_3"] = [("Vida y ministerio", "Vida y ministerio", "vm3")]
+            assignments_to_make["Vida_Ministerio_3"] = [("Vida y ministerio", "Vida y ministerio", "vm3", False)]
 
         for key, parts in assignments_to_make.items():
-            for i, (role_key, role_name, sub_role) in enumerate(parts):
+            for i, (role_key, role_name, sub_role, is_special) in enumerate(parts):
                 slot_key = f"{key}_{i}"
-                person = assign_and_get_person(role_key, role_name, sub_role)
+                person = assign_and_get_person(role_key, role_name, sub_role, is_special)
                 week_schedule[key].append({"key": slot_key, **person})
 
-        # Seamos Mejores Maestros (dos salas, A y B)
+        # Seamos Mejores Maestros (es un rol especial)
         smm_count = int(week_config.get('smm_count', 0))
         for i in range(1, smm_count + 1):
             part_config = week_config[f'smm_part_{i}']
@@ -105,23 +146,18 @@ class Scheduler:
                 sub_role_sala = f"sala_{sala.lower()}"
 
                 if part_config['tipo'] == 'demostracion':
-                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', self.smm_assigned_this_month)
-                    if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
-
-                    current_exclusions = self.smm_assigned_this_month.union({p1.get('persona_id')})
-                    p2 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'ayudante_{sub_role_sala}', current_exclusions)
-                    if p2.get('persona_id'): self.smm_assigned_this_month.add(p2['persona_id'])
-
+                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', is_special_role=True)
+                    p2 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'ayudante_{sub_role_sala}', is_special_role=True)
                     week_schedule[key].append({"key": f"{key}_principal", **p1})
                     week_schedule[key].append({"key": f"{key}_ayudante", **p2})
                 else: # persona sola
-                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', self.smm_assigned_this_month)
-                    if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
+                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', is_special_role=True)
                     week_schedule[key].append({"key": f"{key}_principal", **p1})
 
         self.schedule[week_index] = week_schedule
 
     def generate_schedule(self):
+        # ... (sin cambios en la parte final)
         for i, week_config in enumerate(self.weeks_config):
             self._assign_week(i, week_config)
 
@@ -143,13 +179,19 @@ class Scheduler:
         ]
 
         for i, weekly_schedule in self.schedule.items():
-            # Obtener la fecha de inicio de la semana para mostrarla
             first_day = datetime(self.year, self.month, 1)
-            first_day_of_week = first_day + timedelta(days=-first_day.weekday(), weeks=i)
+            # Asegurar que la primera semana sea del mes correcto
+            day_of_week = first_day.weekday()
+            days_to_monday = (day_of_week - 0 + 7) % 7
+            first_monday = first_day - timedelta(days=days_to_monday)
+            if first_monday.month != self.month:
+                first_monday += timedelta(weeks=1)
+
+            current_week_start = first_monday + timedelta(weeks=i)
 
             week_data = {
                 "week_index": i,
-                "week_date": first_day_of_week.strftime('%d de %B'),
+                "week_date": current_week_start.strftime('%d de %B'),
                 "assignments": []
             }
             for key, title in assignment_order:
