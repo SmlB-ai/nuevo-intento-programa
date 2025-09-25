@@ -356,6 +356,10 @@ button:hover {
 }
 
 /* Estilos para el Modal */
+.modal.hidden {
+    display: none;
+}
+
 .modal {
     position: fixed;
     z-index: 1000;
