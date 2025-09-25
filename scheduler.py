@@ -150,13 +150,14 @@ class Scheduler:
         self.schedule[week_index] = week_schedule
 
     def generate_schedule(self):
-        # ... (sin cambios en la parte final)
         for i, week_config in enumerate(self.weeks_config):
-            self._assign_week(i, week_config)
+            if not week_config.get('is_cancelled', False):
+                self._assign_week(i, week_config)
 
         output = {"weeks": []}
         assignment_order = [
             ("Presidente", "Presidente"), ("Oracion_Inicial", "Oración Inicial"),
+            # ... (resto del orden de asignaciones sin cambios)
             ("Tesoros", "Tesoros de la Biblia"), ("Perlas", "Perlas Escondidas"),
             ("Lectura_Biblia", "Lectura Bíblica"),
             ("SMM_1_A", "Mejores Maestros 1 (Sala A)"), ("SMM_1_B", "Mejores Maestros 1 (Sala B)"),
@@ -171,26 +172,33 @@ class Scheduler:
             ("Acomodadores_Auditorio", "Acomodadores (Auditorio)")
         ]
 
-        for i, weekly_schedule in self.schedule.items():
-            first_day = datetime(self.year, self.month, 1)
-            # Asegurar que la primera semana sea del mes correcto
-            day_of_week = first_day.weekday()
-            days_to_monday = (day_of_week - 0 + 7) % 7
-            first_monday = first_day - timedelta(days=days_to_monday)
-            if first_monday.month != self.month:
-                first_monday += timedelta(weeks=1)
+        for i, week_config in enumerate(self.weeks_config):
+            # --- Cálculo de fecha de Viernes a Jueves ---
+            first_day_of_month = datetime(self.year, self.month, 1)
+            FRIDAY = 4 # 0=Lunes, 4=Viernes
+            days_since_friday = (first_day_of_month.weekday() - FRIDAY + 7) % 7
+            first_friday = first_day_of_month - timedelta(days=days_since_friday)
+            if first_friday.month != self.month:
+                first_friday += timedelta(weeks=1)
 
-            current_week_start = first_monday + timedelta(weeks=i)
+            start_of_week = first_friday + timedelta(weeks=i)
+            end_of_week = start_of_week + timedelta(days=6)
 
-            week_data = {
-                "week_index": i,
-                "week_date": current_week_start.strftime('%d de %B'),
-                "assignments": []
-            }
-            for key, title in assignment_order:
-                if key in weekly_schedule and weekly_schedule[key]:
-                    slots = weekly_schedule[key]
-                    week_data["assignments"].append({"key": key, "title": title, "slots": slots})
+            date_format = lambda d: d.strftime('%#d de %b' if os.name == 'nt' else '%-d de %b')
+            week_date_str = f"{date_format(start_of_week)} - {date_format(end_of_week)}"
+
+            week_data = {"week_index": i, "week_date": week_date_str, "assignments": []}
+
+            if week_config.get('is_cancelled', False):
+                week_data["is_cancelled"] = True
+                week_data["cancel_reason"] = week_config.get('cancel_reason')
+            else:
+                weekly_schedule = self.schedule.get(i, {})
+                for key, title in assignment_order:
+                    if key in weekly_schedule and weekly_schedule[key]:
+                        slots = weekly_schedule[key]
+                        week_data["assignments"].append({"key": key, "title": title, "slots": slots})
+
             output["weeks"].append(week_data)
 
         return output

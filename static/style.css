@@ -277,6 +277,27 @@ button:hover {
     padding-bottom: 10px;
 }
 
+.cancel-label {
+    font-weight: bold;
+    color: #d93025;
+}
+
+.assignments-config.hidden {
+    display: none;
+}
+
+.schedule-week.cancelled {
+    background-color: #fce8e6;
+    border-color: #f28b82;
+}
+
+.cancel-reason-display {
+    font-weight: bold;
+    color: #d93025;
+    text-align: center;
+    padding: 10px;
+}
+
 .form-group {
     margin-bottom: 15px;
 }

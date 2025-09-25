@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const [year, month] = this.value.split('-').map(Number);
         if (!year || !month) return;
 
-        weeklyConfigContainer.innerHTML = ''; // Limpiar configs anteriores
+        weeklyConfigContainer.innerHTML = '';
         generateScheduleBtn.classList.remove('hidden');
 
         const weeks = getWeeksForMonth(year, month);
@@ -231,36 +231,56 @@ document.addEventListener('DOMContentLoaded', function() {
         weeks.forEach((week, index) => {
             const weekDiv = document.createElement('div');
             weekDiv.classList.add('week-config', 'card');
+
+            const endDate = new Date(week);
+            endDate.setUTCDate(endDate.getUTCDate() + 6);
+            const dateFormat = { day: 'numeric', month: 'short', timeZone: 'UTC' };
+            const weekTitle = `Semana ${index + 1} (${week.toLocaleDateString('es-ES', dateFormat)} - ${endDate.toLocaleDateString('es-ES', dateFormat)})`;
+
             weekDiv.innerHTML = `
-                <h4>Semana ${index + 1} (Inicia Lunes ${week.getDate()})</h4>
+                <h4>${weekTitle}</h4>
                 <div class="form-group">
-                    <label>Número de partes de "Seamos Mejores Maestros":</label>
-                    <input type="number" class="smm-parts-count" min="1" max="4" value="3" data-week-index="${index}">
+                    <label class="cancel-label">
+                        <input type="checkbox" class="cancel-week-cb" data-week-index="${index}"> Cancelar esta semana
+                    </label>
                 </div>
-                <div id="smm-config-week-${index}" class="smm-config-container">
-                    <!-- Config SMM se genera aquí -->
+                <div class="form-group cancel-reason-container hidden">
+                    <label>Motivo de cancelación:</label>
+                    <input type="text" class="cancel-reason-input" placeholder="Ej: Asamblea de Circuito">
                 </div>
-                <div class="form-group">
-                    <label>Otras Asignaciones:</label>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="vym2-week-${index}" name="vym2_presente" checked>
-                        <label for="vym2-week-${index}">Incluir "Vida y Ministerio 2"</label>
+                <div class="assignments-config">
+                    <div class="form-group">
+                        <label>Número de partes de "Seamos Mejores Maestros":</label>
+                        <input type="number" class="smm-parts-count" min="1" max="4" value="3" data-week-index="${index}">
                     </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="vym3-week-${index}" name="vym3_presente" checked>
-                        <label for="vym3-week-${index}">Incluir "Vida y Ministerio 3"</label>
+                    <div id="smm-config-week-${index}" class="smm-config-container"></div>
+                    <div class="form-group">
+                        <label>Otras Asignaciones:</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="vym2-week-${index}" name="vym2_presente" checked>
+                            <label for="vym2-week-${index}">Incluir "Vida y Ministerio 2"</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="vym3-week-${index}" name="vym3_presente" checked>
+                            <label for="vym3-week-${index}">Incluir "Vida y Ministerio 3"</label>
+                        </div>
                     </div>
                 </div>
             `;
             weeklyConfigContainer.appendChild(weekDiv);
 
-            // Generar la configuración inicial para SMM
             const smmCountInput = weekDiv.querySelector('.smm-parts-count');
             generateSmmConfig(index, parseInt(smmCountInput.value));
+            smmCountInput.addEventListener('change', (e) => generateSmmConfig(index, parseInt(e.target.value)));
 
-            // Añadir listener para cuando cambia el número de partes
-            smmCountInput.addEventListener('change', (e) => {
-                generateSmmConfig(index, parseInt(e.target.value));
+            // Listener para el checkbox de cancelar
+            const cancelCb = weekDiv.querySelector('.cancel-week-cb');
+            const reasonContainer = weekDiv.querySelector('.cancel-reason-container');
+            const assignmentsConfig = weekDiv.querySelector('.assignments-config');
+            cancelCb.addEventListener('change', (e) => {
+                const isChecked = e.target.checked;
+                reasonContainer.classList.toggle('hidden', !isChecked);
+                assignmentsConfig.classList.toggle('hidden', isChecked);
             });
         });
     });
@@ -288,18 +308,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function getWeeksForMonth(year, month) {
         const weeks = [];
         const date = new Date(Date.UTC(year, month - 1, 1));
+        const FRIDAY = 5;
 
-        // Ir al primer Lunes del mes o el último lunes del mes anterior si el mes no empieza en lunes
-        while (date.getUTCDay() !== 1) {
+        // Ir al primer viernes del mes o el último del mes anterior
+        while (date.getUTCDay() !== FRIDAY) {
             date.setUTCDate(date.getUTCDate() - 1);
         }
 
-        // Si el lunes encontrado es del mes anterior, avanzar a la siguiente semana
+        // Si el viernes encontrado es del mes anterior, avanzar a la siguiente semana
         if (date.getUTCMonth() !== month - 1) {
-             date.setUTCDate(date.getUTCDate() + 7);
+            date.setUTCDate(date.getUTCDate() + 7);
         }
 
-        // Recorrer todas las semanas del mes
+        // Recorrer todas las semanas que comienzan en el mes
         while (date.getUTCMonth() === month - 1) {
             weeks.push(new Date(date));
             date.setUTCDate(date.getUTCDate() + 7);
@@ -314,12 +335,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const weekElements = document.querySelectorAll('.week-config');
 
         weekElements.forEach((weekEl, index) => {
-            const config = {
-                week_index: index,
-                smm_count: weekEl.querySelector('.smm-parts-count').value,
-                vym2_presente: weekEl.querySelector(`input[name="vym2_presente"]`).checked,
-                vym3_presente: weekEl.querySelector(`input[name="vym3_presente"]`).checked,
-            };
+            const isCancelled = weekEl.querySelector('.cancel-week-cb').checked;
+            let config;
+
+            if (isCancelled) {
+                config = {
+                    week_index: index,
+                    is_cancelled: true,
+                    cancel_reason: weekEl.querySelector('.cancel-reason-input').value || 'Sin motivo'
+                };
+            } else {
+                config = {
+                    week_index: index,
+                    is_cancelled: false,
+                    smm_count: weekEl.querySelector('.smm-parts-count').value,
+                    vym2_presente: weekEl.querySelector(`input[name="vym2_presente"]`).checked,
+                    vym3_presente: weekEl.querySelector(`input[name="vym3_presente"]`).checked,
+                };
+            }
 
             const smmParts = weekEl.querySelectorAll('.smm-part-config');
             smmParts.forEach((partEl, i) => {
@@ -367,6 +400,16 @@ document.addEventListener('DOMContentLoaded', function() {
             scheduleData.weeks.forEach(week => {
                 const weekCard = document.createElement('div');
                 weekCard.classList.add('schedule-week', 'card');
+
+                if (week.is_cancelled) {
+                    weekCard.classList.add('cancelled');
+                    weekCard.innerHTML = `
+                        <h3>Semana ${week.week_index + 1} - ${week.week_date}</h3>
+                        <p class="cancel-reason-display">SEMANA CANCELADA: ${week.cancel_reason}</p>
+                    `;
+                    outputDiv.appendChild(weekCard);
+                    return; // Saltar al siguiente bucle
+                }
 
                 const assignmentsContainer = document.createElement('div');
                 assignmentsContainer.classList.add('assignments-list');
