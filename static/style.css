@@ -198,10 +198,29 @@ button:hover {
 
 #participant-list-ul li {
     display: flex;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     align-items: center;
     padding: 10px;
     border-bottom: 1px solid #f0f2f5;
+    gap: 15px;
+}
+
+.participant-name {
+    flex-grow: 1;
+}
+
+#bulk-actions-container {
+    margin-top: 15px;
+}
+
+#bulk-delete-btn {
+    background-color: #fa3e3e;
+    width: auto;
+    padding: 8px 15px;
+}
+
+#bulk-delete-btn:hover {
+    background-color: #e03030;
 }
 
 #participant-list-ul li:last-child {

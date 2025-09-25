@@ -120,12 +120,46 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (persona.genero) details += ` (${persona.genero})`;
                         if (persona.grupo_edad) details += ` (${persona.grupo_edad})`;
 
-                        li.innerHTML = `${persona.nombre} ${details} <button class="delete-btn" data-persona-id="${persona.id}" data-rol-id="${roleId}">Eliminar</button>`;
+                        li.innerHTML = `
+                            <input type="checkbox" class="participant-checkbox" data-persona-id="${persona.id}">
+                            <span class="participant-name">${persona.nombre} ${details}</span>
+                            <button class="delete-btn" data-persona-id="${persona.id}" data-rol-id="${roleId}">Eliminar</button>
+                        `;
                         participantListUl.appendChild(li);
                     });
+                    document.getElementById('bulk-actions-container').classList.remove('hidden');
                 }
             });
     }
+
+    // --- Event Listener para Borrado Masivo ---
+    document.getElementById('bulk-delete-btn').addEventListener('click', () => {
+        const selectedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+        if (selectedCheckboxes.length === 0) {
+            alert('Por favor, selecciona al menos un participante para eliminar.');
+            return;
+        }
+
+        if (confirm(`¿Estás seguro de que quieres eliminar a los ${selectedCheckboxes.length} participantes seleccionados de este rol?`)) {
+            const roleId = document.getElementById('current-role-id').value;
+            const roleName = document.querySelector('.role-item.active').dataset.nombre;
+            const personaIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.personaId);
+
+            fetch('/api/personas/bulk_delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ persona_ids: personaIds, rol_id: roleId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    loadParticipantsForRole(roleId, roleName);
+                } else {
+                    alert('Error al eliminar participantes: ' + result.error);
+                }
+            });
+        }
+    });
 
     // --- Event Listener para añadir personas ---
     addPersonForm.addEventListener('submit', function(event) {

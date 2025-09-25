@@ -168,6 +168,38 @@ def add_persona():
     return jsonify({'success': True})
 
 
+@app.route('/api/personas/bulk_delete', methods=['POST'])
+def bulk_delete_personas_from_rol():
+    """Elimina múltiples personas de un rol específico."""
+    data = request.json
+    persona_ids = data.get('persona_ids', [])
+    rol_id = data.get('rol_id')
+
+    if not persona_ids or not rol_id:
+        return jsonify({'success': False, 'error': 'Faltan IDs de persona o de rol.'}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        for persona_id in persona_ids:
+            cursor.execute(
+                "DELETE FROM personas_roles WHERE persona_id = ? AND rol_id = ?",
+                (persona_id, rol_id)
+            )
+            # Opcional: si la persona no tiene más roles, eliminarla
+            cursor.execute("SELECT COUNT(*) as count FROM personas_roles WHERE persona_id = ?", (persona_id,))
+            if cursor.fetchone()['count'] == 0:
+                cursor.execute("DELETE FROM personas WHERE id = ?", (persona_id,))
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        conn.close()
+
+    return jsonify({'success': True})
+
+
 @app.route('/api/personas/<int:persona_id>/roles/<int:rol_id>', methods=['DELETE'])
 def delete_persona_from_rol(persona_id, rol_id):
     """Elimina la asignación de un rol a una persona."""
