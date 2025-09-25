@@ -355,8 +355,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         nameSpan.dataset.personId = slot.persona_id;
                         nameSpan.dataset.weekIndex = week.week_index;
                         namesEl.appendChild(nameSpan);
+
+                        // Usar '/' para SMM, ',' para los demás
                         if (index < a.slots.length - 1) {
-                            namesEl.appendChild(document.createTextNode(', '));
+                            const separator = a.title.includes('Mejores Maestros') ? ' / ' : ', ';
+                            namesEl.appendChild(document.createTextNode(separator));
                         }
                     });
 

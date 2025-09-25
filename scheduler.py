@@ -94,24 +94,30 @@ class Scheduler:
                 person = assign_and_get_person(role_key, role_name, sub_role)
                 week_schedule[key].append({"key": slot_key, **person})
 
-        # Seamos Mejores Maestros (logic is more complex)
+        # Seamos Mejores Maestros (dos salas, A y B)
         smm_count = int(week_config.get('smm_count', 0))
         for i in range(1, smm_count + 1):
-            key = f"SMM_{i}"
             part_config = week_config[f'smm_part_{i}']
             role_key = f"smm_{part_config['genero']}"
 
-            if part_config['tipo'] == 'demostracion':
-                p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', 'principal', self.smm_assigned_this_month)
-                if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
-                p2 = assign_and_get_person(role_key, 'Seamos mejores maestros', 'ayudante', self.smm_assigned_this_month.union({p1.get('persona_id')}))
-                if p2.get('persona_id'): self.smm_assigned_this_month.add(p2['persona_id'])
-                week_schedule[key].append({"key": f"{key}_principal", **p1})
-                week_schedule[key].append({"key": f"{key}_ayudante", **p2})
-            else:
-                p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', 'principal', self.smm_assigned_this_month)
-                if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
-                week_schedule[key].append({"key": f"{key}_principal", **p1})
+            for sala in ['A', 'B']:
+                key = f"SMM_{i}_{sala}"
+                sub_role_sala = f"sala_{sala.lower()}"
+
+                if part_config['tipo'] == 'demostracion':
+                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', self.smm_assigned_this_month)
+                    if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
+
+                    current_exclusions = self.smm_assigned_this_month.union({p1.get('persona_id')})
+                    p2 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'ayudante_{sub_role_sala}', current_exclusions)
+                    if p2.get('persona_id'): self.smm_assigned_this_month.add(p2['persona_id'])
+
+                    week_schedule[key].append({"key": f"{key}_principal", **p1})
+                    week_schedule[key].append({"key": f"{key}_ayudante", **p2})
+                else: # persona sola
+                    p1 = assign_and_get_person(role_key, 'Seamos mejores maestros', f'principal_{sub_role_sala}', self.smm_assigned_this_month)
+                    if p1.get('persona_id'): self.smm_assigned_this_month.add(p1['persona_id'])
+                    week_schedule[key].append({"key": f"{key}_principal", **p1})
 
         self.schedule[week_index] = week_schedule
 
@@ -124,8 +130,10 @@ class Scheduler:
             ("Presidente", "Presidente"), ("Oracion_Inicial", "Oración Inicial"),
             ("Tesoros", "Tesoros de la Biblia"), ("Perlas", "Perlas Escondidas"),
             ("Lectura_Biblia", "Lectura Bíblica"),
-            ("SMM_1", "Mejores Maestros 1"), ("SMM_2", "Mejores Maestros 2"),
-            ("SMM_3", "Mejores Maestros 3"), ("SMM_4", "Mejores Maestros 4"),
+            ("SMM_1_A", "Mejores Maestros 1 (Sala A)"), ("SMM_1_B", "Mejores Maestros 1 (Sala B)"),
+            ("SMM_2_A", "Mejores Maestros 2 (Sala A)"), ("SMM_2_B", "Mejores Maestros 2 (Sala B)"),
+            ("SMM_3_A", "Mejores Maestros 3 (Sala A)"), ("SMM_3_B", "Mejores Maestros 3 (Sala B)"),
+            ("SMM_4_A", "Mejores Maestros 4 (Sala A)"), ("SMM_4_B", "Mejores Maestros 4 (Sala B)"),
             ("Vida_Ministerio_1", "Vida y Ministerio 1"), ("Vida_Ministerio_2", "Vida y Ministerio 2"),
             ("Vida_Ministerio_3", "Vida y Ministerio 3"),
             ("Estudio_Libro", "Estudio Bíblico"), ("Lector_Libro", "Lector del Estudio"),
