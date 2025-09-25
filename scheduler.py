@@ -84,34 +84,27 @@ class Scheduler:
     def _assign_week(self, week_index, week_config):
         assigned_this_week = set()
         week_schedule = defaultdict(list)
-
-        # Fecha de esta semana para actualizar el historial `history_any_role`
         current_date_str = f"{self.year}-{self.month:02d}-{week_index+1:02d}"
 
         def assign_and_get_person(role_key, role_name, sub_role=None, is_special_role=False):
-            # Añadir exclusiones de roles especiales si aplica
             exclusions = self.special_roles_assigned_this_month if is_special_role else None
-
             candidate = self.find_candidate(role_key, role_name, assigned_this_week, sub_role, custom_exclusions=exclusions)
-
             if candidate and candidate.get('persona_id'):
                 person_id = candidate['persona_id']
                 assigned_this_week.add(person_id)
-
-                # Actualizar historiales locales para este mes
                 history_key = self.get_history_key(role_name, sub_role)
                 self.history_by_role[person_id][history_key] = current_date_str
                 self.history_any_role[person_id] = current_date_str
-
                 if is_special_role:
                     self.special_roles_assigned_this_month.add(person_id)
-
             return candidate
 
-        # Lógica de asignación (simplificada)
+        # --- REGLA DE EXCLUSIVIDAD: Asignar Presidente PRIMERO y bloquearlo ---
+        president_person = assign_and_get_person("Presidente", "Presidente", sub_role=None, is_special_role=False)
+        week_schedule["Presidente"].append({"key": "Presidente_0", **president_person})
+
+        # Lógica de asignación para el resto de los roles
         assignments_to_make = {
-            # ... (Definiciones de asignaciones no especiales)
-            "Presidente": [("Presidente", "Presidente", None, False)],
             "Oracion_Inicial": [("Oraciones", "Oracion", "inicial", False)],
             "Tesoros": [("Tesoros", "Tesoros", None, False)],
             "Perlas": [("Perlas", "Perlas", None, False)],
