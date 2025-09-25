@@ -309,9 +309,18 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(fullConfig)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             displaySchedule(data);
+        })
+        .catch(error => {
+            console.error('Error al generar el programa:', error);
+            alert('Ocurrió un error al generar el programa. Asegúrate de que hay suficientes participantes para todas las asignaciones. Para más detalles, revisa la consola del navegador (F12).');
         });
     });
 
