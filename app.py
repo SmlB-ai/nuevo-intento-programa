@@ -18,12 +18,81 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+def seed_database(conn):
+    """Puebla la base de datos con el programa de Octubre 2025."""
+    cursor = conn.cursor()
+
+    # Mapeo de nombres de asignación a roles en la DB
+    assignment_to_role = {
+        'Presidente': 'Presidente', 'Oración Inicial': 'Oraciones', 'Tesoros de la Biblia': 'Tesoros',
+        'Perlas Escondidas': 'Perlas', 'Lectura Bíblica': 'Lectura de la biblia', 'Mejores Maestros 1 (Sala A)': 'Seamos mejores maestros',
+        'Mejores Maestros 1 (Sala B)': 'Seamos mejores maestros', 'Mejores Maestros 2 (Sala A)': 'Seamos mejores maestros', 'Mejores Maestros 2 (Sala B)': 'Seamos mejores maestros',
+        'Mejores Maestros 3 (Sala A)': 'Seamos mejores maestros', 'Mejores Maestros 3 (Sala B)': 'Seamos mejores maestros', 'Mejores Maestros 4 (Sala A)': 'Seamos mejores maestros',
+        'Mejores Maestros 4 (Sala B)': 'Seamos mejores maestros', 'Vida y Ministerio 1': 'Vida y ministerio', 'Estudio Bíblico': 'Estudio del libro',
+        'Lector del Estudio': 'Lector del libro', 'Oración Final': 'Oraciones', 'Acomodadores (Entrada)': 'Acomodadores', 'Acomodadores (Auditorio)': 'Acomodadores'
+    }
+
+    # Datos del programa de Octubre 2025
+    programa_octubre = {
+        1: [('Presidente', ['Armando Hernández']), ('Oración Inicial', ['Alfredo Ortiz']), ('Tesoros de la Biblia', ['Valentin Rodriguez']), ('Perlas Escondidas', ['Alberto Vázquez']), ('Lectura Bíblica', ['Alonso Gomez', 'René Escalera']), ('Mejores Maestros 1 (Sala A)', ['Ulmer Ramirez', 'Arael Lechuga']), ('Mejores Maestros 1 (Sala B)', ['Sergio Yllanes', 'Gamaliel Cruz']), ('Mejores Maestros 2 (Sala A)', ['Sonia de León', 'Alethia de Pérez']), ('Mejores Maestros 2 (Sala B)', ['Elisa de De Gante', 'Angie de Yllanes']), ('Mejores Maestros 3 (Sala A)', ['Daan Vargas']), ('Mejores Maestros 3 (Sala B)', ['Ivan Ruiz Flores']), ('Vida y Ministerio 1', ['Moisés León P']), ('Estudio Bíblico', ['Joses Luis Tovar']), ('Lector del Estudio', ['Artemio Velazquez']), ('Oración Final', ['Moises Popoca Perez']), ('Acomodadores (Entrada)', ['Alfredo Pérez', 'Marcial Pérez', 'Manual Sotero Jimenez']), ('Acomodadores (Auditorio)', ['Rafael Lechuga', 'Samuel Bejar'])],
+        2: [('Presidente', ['Valentin Rodriguez']), ('Oración Inicial', ['Daniel Perez']), ('Tesoros de la Biblia', ['Leopoldo Venegas']), ('Perlas Escondidas', ['Brayan Venegas']), ('Lectura Bíblica', ['Manuel Sotero', 'Ángel Chávez']), ('Mejores Maestros 1 (Sala A)', ['Miriam de Yllanes', 'Marisol de Cruz']), ('Mejores Maestros 1 (Sala B)', ['Elizabeth de Ramírez', 'Erika Hadassa Bejar']), ('Mejores Maestros 2 (Sala A)', ['Benita de Velázquez', 'Ángeles de Ortiz']), ('Mejores Maestros 2 (Sala B)', ['Alicia Zecua', 'Guillermina López']), ('Mejores Maestros 3 (Sala A)', ['Marta Julia Ocampo', 'Cristina Popoca Perez']), ('Mejores Maestros 3 (Sala B)', ['Karen Salomón', 'Luz Maria Tovar']), ('Mejores Maestros 4 (Sala A)', ['Yazmin Lopez de Hernandez', 'Vanesa Jiménez de Zagoya']), ('Mejores Maestros 4 (Sala B)', ['Ximena Pérez', 'Amparo de Sánchez']), ('Vida y Ministerio 1', ['Alfredo Ortiz']), ('Estudio Bíblico', ['Armando Hernández']), ('Lector del Estudio', ['Rodolfo Pérez']), ('Oración Final', ['Yurghen Zagoya']), ('Acomodadores (Entrada)', ['Daniel Pérez', 'Lorenzo Sosa', 'Moisés León P.']), ('Acomodadores (Auditorio)', ['Arael Lechuga', 'Moises Popoca Perez'])],
+        4: [('Presidente', ['Alberto Vázquez']), ('Oración Inicial', ['Ruben sanchez']), ('Tesoros de la Biblia', ['Rafael Lechuga']), ('Perlas Escondidas', ['Moisés León P']), ('Lectura Bíblica', ['Damián Lechuga', 'Gabriel Herrera']), ('Mejores Maestros 1 (Sala A)', ['Amisadai de Béjar', 'Claudia de Vázquez']), ('Mejores Maestros 1 (Sala B)', ['Andrea de Márquez', 'Karina Flores de Rodríguez']), ('Mejores Maestros 2 (Sala A)', ['Guillermina Vallarte', 'Elsa de Santos']), ('Mejores Maestros 2 (Sala B)', ['Olimpia Milán', 'Juana de Sosa']), ('Mejores Maestros 3 (Sala A)', ['Ana Kareli Huerta', 'Rubí Mendoza Osorio']), ('Mejores Maestros 3 (Sala B)', ['Irma Pastrana', 'Eloisa Cortes']), ('Vida y Ministerio 1', ['Joses Luis Tovar']), ('Estudio Bíblico', ['Moises Popoca Perez']), ('Lector del Estudio', ['Samuel bejar']), ('Oración Final', ['Daan Vargas']), ('Acomodadores (Entrada)', ['Valentin Rodriguez', 'Artemio Velazquez', 'Armando Hernández']), ('Acomodadores (Auditorio)', ['Bryan Venegas', 'Ruben Sánchez'])],
+        5: [('Presidente', ['Leopoldo Venegas']), ('Oración Inicial', ['Gamaliel Cruz']), ('Tesoros de la Biblia', ['Yurghen Zagoya']), ('Perlas Escondidas', ['Daan Vargas']), ('Lectura Bíblica', ['Marcial Pérez', 'Hilarion Pastrana']), ('Mejores Maestros 1 (Sala A)', ['Dolores de Maceda', 'Karolina Ruiz Flores']), ('Mejores Maestros 1 (Sala B)', ['Michell Zagoya', 'Yadira de Escalera']), ('Mejores Maestros 2 (Sala A)', ['Aranza Pérez', 'Nohemi Sandoval']), ('Mejores Maestros 2 (Sala B)', ['Cosbi Huerta', 'Miriam Velázquez']), ('Mejores Maestros 3 (Sala A)', ['Moisés León']), ('Mejores Maestros 3 (Sala B)', ['Sergio Yllanes']), ('Vida y Ministerio 1', ['Daniel Perez']), ('Estudio Bíblico', ['Alfredo Ortiz']), ('Lector del Estudio', ['Fernando Yllanes']), ('Oración Final', ['Brayan Venegas']), ('Acomodadores (Entrada)', ['Daniel Pérez', 'Alberto Vázquez', 'Moises Popoca Perez']), ('Acomodadores (Auditorio)', ['Marcial Pérez', 'FALTAN CANDIDATOS'])]
+    }
+
+    # Recopilar todos los nombres y obtener sus IDs
+    all_names = set()
+    for week, assignments in programa_octubre.items():
+        for _, participants in assignments:
+            for name in participants:
+                if name != 'FALTAN CANDIDATOS':
+                    all_names.add(name)
+
+    person_ids = {}
+    for name in all_names:
+        cursor.execute("INSERT OR IGNORE INTO personas (nombre) VALUES (?)", (name,))
+        cursor.execute("SELECT id FROM personas WHERE nombre = ?", (name,))
+        person_ids[name] = cursor.fetchone()['id']
+
+    # Obtener IDs de roles
+    rol_ids = {}
+    for rol_name in assignment_to_role.values():
+        cursor.execute("SELECT id FROM roles WHERE nombre_rol = ?", (rol_name,))
+        rol_ids[rol_name] = cursor.fetchone()['id']
+
+    # Insertar en el historial y asignar roles
+    for week, assignments in programa_octubre.items():
+        for assignment_title, participants in assignments:
+            rol_db_name = assignment_to_role.get(assignment_title)
+            if not rol_db_name: continue
+
+            rol_id = rol_ids[rol_db_name]
+
+            for i, name in enumerate(participants):
+                if name != 'FALTAN CANDIDATOS':
+                    person_id = person_ids[name]
+                    # Asignar rol a la persona (ignorando si ya existe)
+                    # Aquí faltaría la lógica de género/edad, se asumen valores por defecto
+                    cursor.execute(
+                        "INSERT OR IGNORE INTO personas_roles (persona_id, rol_id, genero, grupo_edad) VALUES (?, ?, ?, ?)",
+                        (person_id, rol_id, None, 'adulto')
+                    )
+                    # Insertar en historial
+                    cursor.execute(
+                        "INSERT INTO historial (semana, mes, anio, asignacion_nombre, persona_id, rol_secundario) VALUES (?, ?, ?, ?, ?, ?)",
+                        (week, 10, 2025, assignment_title, person_id, f"seed_{i}")
+                    )
+    print("Base de datos poblada con datos de Octubre 2025.")
+
+
 def init_db():
     """Inicializa la base de datos y crea las tablas si no existen."""
-    if os.path.exists(DB_FILE):
+    db_exists = os.path.exists(DB_FILE)
+    conn = get_db_connection()
+    if db_exists:
+        conn.close()
         return
 
-    conn = get_db_connection()
     cursor = conn.cursor()
 
     # Tabla de Personas
@@ -79,6 +148,16 @@ def init_db():
         cursor.execute("INSERT INTO roles (nombre_rol) VALUES (?)", (rol,))
 
     conn.commit()
+
+    # Si la base de datos era nueva, poblarla con datos
+    if not db_exists:
+        try:
+            seed_database(conn)
+            conn.commit()
+        except Exception as e:
+            print(f"Error al poblar la base de datos: {e}")
+            conn.rollback()
+
     conn.close()
     print("Base de datos inicializada.")
 
@@ -367,6 +446,18 @@ def get_history():
     """).fetchall()
     conn.close()
     return jsonify([dict(row) for row in history_data])
+
+@app.route('/api/history', methods=['DELETE'])
+def clear_history():
+    """Borra todos los registros de la tabla historial."""
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM historial")
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 if __name__ == '__main__':

@@ -28,6 +28,21 @@ document.addEventListener('DOMContentLoaded', function() {
         loadHistory();
     });
 
+    document.getElementById('clear-history-btn').addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres borrar TODO el historial de asignaciones? Esta acción no se puede deshacer.')) {
+            fetch('/api/history', { method: 'DELETE' })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.success) {
+                        loadHistory(); // Recargar la vista del historial
+                        alert('El historial ha sido borrado.');
+                    } else {
+                        alert('Error al borrar el historial: ' + result.error);
+                    }
+                });
+        }
+    });
+
     function loadHistory() {
         const historyBody = document.getElementById('history-table-body');
         historyBody.innerHTML = '<tr><td colspan="3">Cargando...</td></tr>';
