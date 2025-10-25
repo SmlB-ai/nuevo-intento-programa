@@ -464,4 +464,4 @@ if __name__ == '__main__':
     # Asegurarse de que la DB se inicializa antes de correr la app
     with app.app_context():
         init_db()
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5001, use_reloader=False)
